@@ -1,0 +1,23 @@
+PASSO 1 Entrar no KILLERCODA 
+• Faça login na conta gratuita.
+• Abra o Kubernetes Playground de dois nós.
+• Aguarde o terminal e o cluster ficarem disponíveis.
+• O ambiente gratuito é temporário: conclua a prática dentro da aula.
+
+PASSO 2 
+kubectl version --client
+Client Version: v1.37.1
+Kustomize Version: v5.8.1
+
+kubectl get nodes
+NAME           STATUS   ROLES           AGE    VERSION
+controlplane   Ready    control-plane   4d6h   v1.37.1
+node01         Ready    <none>          4d5h   v1.37.1
+
+PASSO 3
+kubectl create deployment web-aula5 --image=nginx:alpine
+deployment.apps/web-aula5 created
+
+kubectl get deployments
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+web-aula5   1/1     1            1           109s
