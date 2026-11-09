@@ -1,23 +1,452 @@
-PASSO 1 Entrar no KILLERCODA 
-• Faça login na conta gratuita.
-• Abra o Kubernetes Playground de dois nós.
-• Aguarde o terminal e o cluster ficarem disponíveis.
-• O ambiente gratuito é temporário: conclua a prática dentro da aula.
+# Atividade Prática – Kubernetes (Aula 5)
 
-PASSO 2 
+## Passo 1 – Acessando o Killercoda
+
+Primeiro, acessei o site Killercoda e fiz login na minha conta gratuita. Depois, entrei no Kubernetes Playground de dois nós e aguardei até que o terminal e o cluster estivessem disponíveis para começar a atividade.
+
+O ambiente utilizado é temporário, então foi necessário realizar a prática durante a aula.
+
+**O que entendi:** O Killercoda permite praticar Kubernetes diretamente pelo navegador, sem precisar instalar e configurar todo o ambiente no computador.
+
+---
+
+## Passo 2 – Verificando a versão e os nós do Kubernetes
+
+Primeiro, utilizei o comando abaixo para verificar a versão do cliente Kubernetes:
+
+**Comando utilizado:**
+
+```bash
 kubectl version --client
+```
+
+**Resultado:**
+
+```text
 Client Version: v1.37.1
 Kustomize Version: v5.8.1
+```
 
+Depois, utilizei outro comando para verificar os nós disponíveis no cluster:
+
+**Comando utilizado:**
+
+```bash
 kubectl get nodes
+```
+
+**Resultado:**
+
+```text
 NAME           STATUS   ROLES           AGE    VERSION
 controlplane   Ready    control-plane   4d6h   v1.37.1
 node01         Ready    <none>          4d5h   v1.37.1
+```
 
-PASSO 3
+**O que fiz e entendi:** Nessa etapa, conferi a versão do Kubernetes e verifiquei se os nós estavam funcionando. Apareceram dois nós, `controlplane` e `node01`, ambos com o status `Ready`. Isso mostrou que o cluster estava pronto para receber as aplicações.
+
+---
+
+## Passo 3 – Criando o Deployment
+
+Nessa etapa, criei um Deployment chamado `web-aula5`, utilizando a imagem `nginx:alpine`.
+
+**Comando utilizado:**
+
+```bash
 kubectl create deployment web-aula5 --image=nginx:alpine
-deployment.apps/web-aula5 created
+```
 
+**Resultado:**
+
+```text
+deployment.apps/web-aula5 created
+```
+
+Depois, utilizei o comando abaixo para verificar se o Deployment tinha sido criado:
+
+**Comando utilizado:**
+
+```bash
 kubectl get deployments
+```
+
+**Resultado:**
+
+```text
 NAME        READY   UP-TO-DATE   AVAILABLE   AGE
 web-aula5   1/1     1            1           109s
+```
+
+**O que fiz e entendi:** Criei a aplicação utilizando o Nginx e depois conferi se ela estava funcionando. O resultado mostrou que havia uma réplica criada e disponível. Entendi que o Deployment é responsável por controlar a aplicação e manter a quantidade de réplicas configurada.
+
+---
+
+## Passo 4 – Verificando os Pods
+
+Depois de criar o Deployment, fui verificar se o Kubernetes tinha criado o Pod corretamente.
+
+**Primeiro comando:**
+
+```bash
+kubectl get pods
+```
+
+**Resultado:**
+
+```text
+NAME                         READY   STATUS    RESTARTS   AGE
+web-aula5-779c6f9566-bqttt   1/1     Running   0          4m24s
+```
+
+Em seguida, utilizei o comando `-o wide` para visualizar mais informações sobre o Pod.
+
+**Segundo comando:**
+
+```bash
+kubectl get pods -o wide
+```
+
+**Resultado:**
+
+```text
+NAME                         READY   STATUS    RESTARTS   AGE     IP              NODE     NOMINATED NODE   READINESS GATES
+web-aula5-779c6f9566-bqttt   1/1     Running   0          5m35s   192.168.1.232   node01   <none>           <none>
+```
+
+**O que fiz e entendi:** Consegui verificar que o Pod estava funcionando normalmente, com status `Running`. Também visualizei seu endereço IP e percebi que ele estava sendo executado no nó `node01`. Entendi que os Pods são responsáveis por executar os contêineres dentro do Kubernetes.
+
+---
+
+## Passo 5 – Consultando os detalhes do Pod
+
+Nessa etapa, tentei utilizar o comando `describe` para visualizar informações mais completas sobre o Pod.
+
+**Primeira tentativa:**
+
+```bash
+kubectl describe pod $(kubectl get pods -0 jsonpath='{.items[0].metadata.name}')
+```
+
+**Resultado do erro:**
+
+```text
+error: unknown shorthand flag: '0' in -0
+See 'kubectl get --help' for usage.
+```
+
+O erro aconteceu porque digitei o número zero (`0`) no lugar da letra O no parâmetro `-o`.
+
+**Comando corrigido:**
+
+```bash
+kubectl describe pod $(kubectl get pods -o jsonpath='{.items[0].metadata.name}')
+```
+
+**Resultado da consulta:**
+
+```text
+Name:             web-aula5-779c6f9566-bqttt
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             node01/172.30.2.2
+Start Time:       Mon, 09 Nov 2026 17:36:01 +0000
+Labels:           app=web-aula5
+                  pod-template-hash=779c6f9566
+Annotations:      <none>
+Status:           Running
+IP:               192.168.1.232
+IPs:
+  IP:           192.168.1.232
+Controlled By:  ReplicaSet/web-aula5-779c6f9566
+Containers:
+  nginx:
+    Container ID:   containerd://992d40cc6ef5ff17f24eb9214cfbe7a9176d10e21b5b08e64ec155d5db2d9a0b
+    Image:          nginx:alpine
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 09 Nov 2026 17:36:09 +0000
+    Ready:          True
+    Restart Count:  0
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+QoS Class:                    BestEffort
+Node-Selectors:               <none>
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  9m38s  default-scheduler  Successfully assigned default/web-aula5-779c6f9566-bqttt to node01
+  Normal  Pulling    9m35s  kubelet            Pulling image "nginx:alpine"
+  Normal  Pulled     9m31s  kubelet            Successfully pulled image "nginx:alpine"
+  Normal  Created    9m30s  kubelet            Container created
+  Normal  Started    9m30s  kubelet            Container started
+```
+
+**O que fiz e entendi:** Depois de corrigir o comando, consegui visualizar os detalhes do Pod. Observei que ele estava em execução, que utilizava a imagem `nginx:alpine` e que estava pronto para funcionar. Também consegui visualizar os eventos que aconteceram durante sua criação. Entendi que o comando `describe` ajuda bastante a investigar o funcionamento de um Pod.
+
+---
+
+## Passo 6 – Aumentando a quantidade de réplicas
+
+Depois de verificar que a aplicação estava funcionando, fiz um teste aumentando a quantidade de réplicas de uma para três.
+
+**Comando utilizado:**
+
+```bash
+kubectl scale deployment web-aula5 --replicas=3
+```
+
+**Resultado:**
+
+```text
+deployment.apps/web-aula5 scaled
+```
+
+Depois, consultei novamente os Pods:
+
+**Comando utilizado:**
+
+```bash
+kubectl get pods -o wide
+```
+
+**Resultado:**
+
+```text
+NAME                         READY   STATUS    RESTARTS   AGE   IP              NODE     NOMINATED NODE   READINESS GATES
+web-aula5-779c6f9566-9mw7p   1/1     Running   0          53s   192.168.1.131   node01   <none>           <none>
+web-aula5-779c6f9566-bqttt   1/1     Running   0          12m   192.168.1.232   node01   <none>           <none>
+web-aula5-779c6f9566-pd274   1/1     Running   0          53s   192.168.1.8     node01   <none>           <none>
+```
+
+**O que fiz e entendi:** Aumentei a quantidade de réplicas para três e depois conferi se o Kubernetes tinha criado os novos Pods. O resultado mostrou os três em execução. Entendi que podemos aumentar a quantidade de cópias de uma aplicação de forma simples, sem precisar criar cada Pod manualmente.
+
+---
+
+## Passo 7 – Verificando Deployment, ReplicaSet e Pods
+
+Nessa etapa, utilizei um comando para consultar vários recursos do Kubernetes de uma só vez.
+
+**Comando utilizado:**
+
+```bash
+kubectl get deployment,replicaset,pods
+```
+
+**Resultado:**
+
+```text
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/web-aula5   3/3     3            3           13m
+
+NAME                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/web-aula5-779c6f9566   3         3         3       13m
+
+NAME                             READY   STATUS    RESTARTS   AGE
+pod/web-aula5-779c6f9566-9mw7p   1/1     Running   0          2m2s
+pod/web-aula5-779c6f9566-bqttt   1/1     Running   0          13m
+pod/web-aula5-779c6f9566-pd274   1/1     Running   0          2m2s
+```
+
+**O que fiz e entendi:** Consultei o Deployment, o ReplicaSet e os Pods para entender melhor como eles estavam organizados. Consegui observar que os três Pods estavam funcionando e que o ReplicaSet estava mantendo as três réplicas. Entendi que esses recursos trabalham juntos para controlar e manter a aplicação em execução.
+
+---
+
+## Passo 8 – Excluindo um Pod e verificando sua recriação
+
+Primeiro, consultei os Pods que estavam em execução.
+
+**Comando utilizado:**
+
+```bash
+kubectl get pods
+```
+
+**Resultado:**
+
+```text
+NAME                         READY   STATUS    RESTARTS   AGE
+web-aula5-779c6f9566-9mw7p   1/1     Running   0          3m49s
+web-aula5-779c6f9566-bqttt   1/1     Running   0          15m
+web-aula5-779c6f9566-pd274   1/1     Running   0          3m49s
+```
+
+Depois, executei o comando para excluir um dos Pods:
+
+**Comando utilizado:**
+
+```bash
+kubectl delete pod $(kubectl get pods -o jsonpath='{.items[0].metadata.name}')
+```
+
+**Resultado:**
+
+```text
+pod "web-aula5-779c6f9566-9mw7p" deleted from default namespace
+```
+
+Em seguida, consultei novamente os Pods:
+
+**Comando utilizado:**
+
+```bash
+kubectl get pods
+```
+
+**Resultado:**
+
+```text
+NAME                         READY   STATUS    RESTARTS   AGE
+web-aula5-779c6f9566-bqttt   1/1     Running   0          18m
+web-aula5-779c6f9566-pd274   1/1     Running   0          7m
+web-aula5-779c6f9566-pl2n7   1/1     Running   0          39s
+```
+
+**O que fiz e entendi:** Excluí um dos Pods e depois consultei novamente para ver o que aconteceria. Percebi que o Kubernetes criou outro Pod automaticamente para substituir o que foi removido, mantendo a quantidade de três réplicas. Entendi que esse é um dos recursos importantes do Kubernetes, pois ele consegue manter a quantidade de Pods desejada mesmo quando algum deles é excluído.
+
+---
+
+## Passo 9 – Criando um Service
+
+Depois de trabalhar com os Pods, criei um Service para permitir o acesso à aplicação dentro do cluster.
+
+**Comando utilizado:**
+
+```bash
+kubectl expose deployment web-aula5 --port=80 --target-port=80 --name=web-service
+```
+
+**Resultado:**
+
+```text
+service/web-service exposed
+```
+
+Depois, verifiquei se o Service tinha sido criado corretamente.
+
+**Comando utilizado:**
+
+```bash
+kubectl get service web-service
+```
+
+**Resultado:**
+
+```text
+NAME          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+web-service   ClusterIP   10.97.50.123   <none>        80/TCP    56s
+```
+
+**O que fiz e entendi:** Criei um Service chamado `web-service`, utilizando a porta 80. Depois, conferi suas informações e observei que ele foi criado como `ClusterIP`. Entendi que o Service funciona como um ponto de acesso estável para os Pods, permitindo que outros componentes dentro do cluster encontrem e acessem a aplicação.
+
+---
+
+## Passo 10 – Testando a comunicação com o Service
+
+Por último, fiz um teste para verificar se conseguia acessar a aplicação por meio do Service que havia criado.
+
+Para isso, utilizei a imagem `curlimages/curl`, que permite fazer requisições HTTP pelo terminal.
+
+Na primeira tentativa, acabei cometendo um erro de digitação por falta de atenção.
+
+**Primeira tentativa:**
+
+```bash
+ubectl run teste --image=curlimages/curl --rm -it -restart=Never -- \ curl  http://web-service
+```
+
+**Resultado:**
+
+```text
+error: unknown shorthand flag: 'r' in -restart=Never
+See 'kubectl run --help' for usage.
+```
+
+O problema foi que utilizei apenas um hífen em `-restart=Never`, quando o correto seria utilizar dois: `--restart=Never`.
+
+Depois, tentei novamente, mas acabei digitando `rum` no lugar de `run`.
+
+**Segunda tentativa:**
+
+```bash
+kubectl rum teste --image=curlimages/curl --rm -it --restart=Never -- \ curl http://web-service
+```
+
+**Resultado:**
+
+```text
+error: unknown command "rum" for "kubectl"
+
+Did you mean this?
+        run
+```
+
+Após perceber os erros, corrigi o comando e fiz uma nova tentativa.
+
+**Terceira tentativa:**
+
+```bash
+kubectl run teste --image=curlimages/curl --rm -it --restart=Never -- \ curl http://web-service
+```
+
+**Resultado apresentado:**
+
+```text
+curl: (3) URL rejected: Bad hostname
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, nginx is successfully installed and working.
+Further configuration is required for the web server, reverse proxy, 
+API gateway, load balancer, content cache, or other features.</p>
+
+<p>For online documentation and support please refer to
+<a href="https://nginx.org/">nginx.org</a>.<br/>
+To engage with the community please visit
+<a href="https://community.nginx.org/">community.nginx.org</a>.<br/>
+For enterprise grade support, additional security features and capabilities
+please refer to
+<a href="https://f5.com/nginx">f5.com/nginx</a>.</p>
+
+<p><em>Thank you for using nginx!</em></p>
+</body>
+</html>
+```
+
+No final da execução, também apareceu a informação de que a sessão havia sido encerrada e que o Pod `teste` foi removido automaticamente por causa da opção `--rm`.
+
+**O que fiz e entendi:** Nessa última etapa, tentei testar a comunicação com o Service utilizando o Curl. Acabei errando alguns comandos por falta de atenção, mas fui corrigindo até conseguir executar o teste. O retorno apresentou a página padrão do Nginx, embora também tenha aparecido uma mensagem de erro do Curl.
+
+Entendi que o Curl pode ser utilizado para testar se um serviço está respondendo dentro do Kubernetes. Também percebi que é importante prestar atenção na escrita dos comandos, porque um pequeno erro pode impedir sua execução correta. Faz parte do aprendizado, e consegui entender melhor como funciona esse tipo de teste.
+
+---
+
+## Conclusão
+
+Com essa atividade prática, consegui entender melhor como funciona o Kubernetes e como podemos utilizar seus comandos para criar e gerenciar aplicações dentro de um cluster.
+
+Durante os passos, aprendi a criar um Deployment, verificar os Pods, aumentar a quantidade de réplicas, consultar informações dos recursos, excluir um Pod e observar sua recriação automática.
+
+Também consegui entender a importância do Service para permitir a comunicação com as aplicações dentro do cluster.
+
+Uma das partes que achei mais interessante foi excluir um Pod e perceber que o próprio Kubernetes criou outro automaticamente para manter as três réplicas configuradas.
+
+Apesar de alguns erros de digitação durante a atividade, principalmente no último passo, consegui identificar os problemas e entender melhor os comandos utilizados.
+
+No geral, a prática foi importante para sair um pouco da teoria e conseguir visualizar como o Kubernetes funciona na prática, principalmente no gerenciamento de contêineres e na manutenção das aplicações em execução.
