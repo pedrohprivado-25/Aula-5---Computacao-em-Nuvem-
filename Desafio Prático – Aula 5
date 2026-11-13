@@ -1,0 +1,63 @@
+# Desafio Prático – Aula 5 | Computação em Nuvem
+
+
+## PASSO 1
+
+Primeiramente, aumentamos a quantidade de réplicas da aplicação `web-aula5` para cinco, utilizando o comando:
+
+```bash
+kubectl scale deployment web-aula5 --replicas=5
+```
+
+**Resultado:**
+
+```text
+deployment.apps/web-aula5 scaled
+```
+
+Em seguida, verificamos se os cinco Pods estavam em execução:
+
+```bash
+kubectl get pods
+```
+
+**Resultado:**
+
+```text
+NAME                         READY   STATUS    RESTARTS   AGE
+web-aula5-779c6f9566-q86vk   1/1     Running   0          13m
+web-aula5-779c6f9566-rssm4   1/1     Running   0          13m
+web-aula5-779c6f9566-rtjtb   1/1     Running   0          2m59s
+web-aula5-779c6f9566-s7r5l   1/1     Running   0          9m37s
+web-aula5-779c6f9566-w5c8s   1/1     Running   0          2m59s
+```
+
+Como podemos observar, os cinco Pods estavam com o status `Running`, mostrando que estavam funcionando corretamente.
+
+Depois, realizamos um teste para verificar se o Kubernetes conseguiria substituir automaticamente um Pod excluído.
+
+Para isso, utilizamos:
+
+```bash
+kubectl delete pod $(kubectl get pods -o jsonpath='{.items[0].metadata.name}')
+```
+
+**Resultado:**
+
+```text
+pod "web-aula5-779c6f9566-q86vk" deleted from default namespace
+```
+
+Após a exclusão, verificamos novamente os Pods:
+
+```bash
+kubectl get pods
+```
+
+**Resultado:**
+
+```text
+NAME                         READY   STATUS    RESTARTS   AGE
+web-aula5-779c6f9566-fvkp6   1/1     Running   0          61s
+web-aula5-779c6f9566-rssm4   1/1     Running   0          16m
+web-a
